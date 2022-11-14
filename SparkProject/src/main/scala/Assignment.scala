@@ -1,10 +1,11 @@
 
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession, functions}
 import org.apache.spark.sql.functions.{avg, col, collect_list, collect_set, dayofmonth, days, lit, month, regexp_replace, sum, year}
 import org.apache.spark.sql.types.{DataType, DateType, IntegerType, StringType}
 import org.apache.spark.storage.StorageLevel
 
-import scala.Console.in
+
 
 object Assignment extends App{
 
@@ -52,24 +53,21 @@ object Assignment extends App{
 
 
   val oddIndex = resIntegerList.zipWithIndex.filter(_._2 % 2 == 1).map(_._1)
-  println(oddIndex(0))
+
   val evenIndex = resIntegerList.zipWithIndex.filter(_._2 % 2 != 1).map(_._1)
-  println(evenIndex(0))
 
 
-  val oddDf: DataFrame = resInteger.select(oddIndex.map(m => col(m)): _*)
-  val evenDf: DataFrame = resInteger.select(evenIndex.map(m => col(m)): _*)
-
-  oddDf.select("*").show()
-  evenDf.select("*").show()
-
-  val evenDfAnswer: DataFrame = evenDf.select(evenIndex.map(m => sum(m)):_*)
-  val oddDfAnswer: DataFrame = oddDf.select(oddIndex.map(m => avg(m)):_*)
 
 
-  val merged_df = evenDfAnswer.unionByName(oddDfAnswer, true).show()
+  val oddDfList = oddIndex.map(m => sum(col(m)))
+  val evenDfList = evenIndex.map(m => avg(col(m)))
+
+  val aggregate = (oddDfList ++ evenDfList)
 
 
+  val result = df.groupBy(evenIndex.map(m => col(m)): _*).agg(aggregate.head, aggregate.tail: _*)
+
+  result.show()
 
 
 
@@ -84,9 +82,7 @@ object Assignment extends App{
   resDates.printSchema()
   println(resDatesList.mkString(","))
 
-
   df4.show()
-
 
 
 }
